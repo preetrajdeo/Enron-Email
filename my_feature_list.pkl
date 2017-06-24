@@ -7,4 +7,6 @@ aS'expenses'
 p3
 aS'shared_receipt_with_poi'
 p4
+aS'fraction_from_poi_email'
+p5
 a.

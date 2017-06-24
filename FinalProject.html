@@ -174,10 +174,10 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h2 id="Introduction">Introduction<a class="anchor-link" href="#Introduction">&#182;</a></h2><p>In 2000, Enron was one of the largest companies in the United States. By 2002, it had collapsed into bankruptcy due to widespread corporate fraud. In the resulting Federal investigation, there was a significant amount of typically confidential information entered into public record, including tens of thousands of emails and detailed financial data for top executives.</p>
+<h1 id="Introduction">Introduction<a class="anchor-link" href="#Introduction">&#182;</a></h1><p>In 2000, Enron was one of the largest companies in the United States. By 2002, it had collapsed into bankruptcy due to widespread corporate fraud. In the resulting Federal investigation, there was a significant amount of typically confidential information entered into public record, including tens of thousands of emails and detailed financial data for top executives.</p>
 <p>In this project my goal is to choose a combination of features from a variety of features pertaining to the former employees of Enron. I will then use an algorithm that helps me predict whether this person is a Person of Interest (POI) or not. This is a Supervised Classification problem because we are given the right answer i.e. whether the person is a POI or not. I'm going to try to get as many POIs right as possible.</p>
 <p>The dataset itself consists of email metadata and financial data for about 150 employees of Enron.</p>
-<p>In this project I will be engineering the features, pick and tune an algorithm, test and evaluate my identifier.</p>
+<p>I will be engineering the features, pick and tune an algorithm, test and evaluate my identifier.</p>
 
 </div>
 </div>
@@ -193,11 +193,25 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[35]:</div>
+<div class="prompt input_prompt">In&nbsp;[67]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">recall_score</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">KFold</span>
+<span class="kn">from</span> <span class="nn">sklearn.naive_bayes</span> <span class="kn">import</span> <span class="n">GaussianNB</span>
+<span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="kn">import</span> <span class="n">DecisionTreeClassifier</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">grid_search</span>
+<span class="kn">from</span> <span class="nn">sklearn.grid_search</span> <span class="kn">import</span> <span class="n">GridSearchCV</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">StratifiedShuffleSplit</span>
+<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">svm</span>
+
+
 <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;../tools/&quot;</span><span class="p">)</span>
 
 
@@ -222,18 +236,18 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Outliers.">Outliers.<a class="anchor-link" href="#Outliers.">&#182;</a></h1><p>First I decide to plot Salary against Bonus and try to see what the scatter plot looks like. Below we can see that there's one observation that is clearly an outlier. Upon further combing through the data, I realize that that must be the observation 'Total'.</p>
+<h1 id="Outliers">Outliers<a class="anchor-link" href="#Outliers">&#182;</a></h1><p>First I decide to plot Salary against Bonus and try to see what the scatter plot looks like. Below we can see that there's one observation that is clearly an outlier. Upon further combing through the data, I realize that that must be the observation 'Total'.</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[36]:</div>
+<div class="prompt input_prompt">In&nbsp;[68]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
 <span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;salary&quot;</span><span class="p">,</span> <span class="s">&quot;bonus&quot;</span><span class="p">]</span>
 <span class="n">data</span> <span class="o">=</span> <span class="n">featureFormat</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">features</span><span class="p">)</span>
 <span class="k">for</span> <span class="n">point</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span>
@@ -393,7 +407,7 @@ IklqxQCRJLVigEiSWjFAJEmt/H+VN9yEGJOPDAAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[37]:</div>
+<div class="prompt input_prompt">In&nbsp;[69]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">outliers</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;TOTAL&quot;</span><span class="p">,</span> <span class="s">&#39;The TRAVE AGENCY IN THE PARK&#39;</span><span class="p">]</span>
@@ -606,6 +620,703 @@ iUVERCKlxCIiIpFSYhERkUj9f78Q1MwjmfjjAAAAAElFTkSuQmCC
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Exploring-the-Dataset">Exploring the Dataset<a class="anchor-link" href="#Exploring-the-Dataset">&#182;</a></h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>There are a total of 146 data points and 16 features in the dataset.</p>
+<p>I decide to use all 16 features when I initially deploy the algorithm. I then continue to use 
+Feature Importances to use only the most relevant features in my algorithm.</p>
+<p>Salary is a feature with the most number of missing values. I have removed them in the step above.</p>
+<p>There are 18 POIs out of 146 observations. I wanted to see if I can tell how POIs behave corresponding to the different features in the dataset. Below I have plotted Salary vs Bonus. The data points are coloured to reveal whether they are a POI or not. The data points in yellow are POIs. We can see that most POIs have mid to high salaries but not all have high bonuses. There are two POIs at the very top that seem to have a very high salary and bonus.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[70]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="n">features</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;poi&quot;</span><span class="p">,</span><span class="s">&quot;bonus&quot;</span><span class="p">,</span> <span class="s">&quot;salary&quot;</span><span class="p">,</span> <span class="s">&quot;expenses&quot;</span><span class="p">]</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">featureFormat</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">features</span><span class="p">)</span>
+<span class="n">df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">data</span><span class="o">=</span><span class="n">data</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">c</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;viridis&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&#39;Bonus&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&#39;Salary&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[70]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&lt;matplotlib.text.Text at 0x11497c850&gt;</pre>
+</div>
+
+</div>
+
+<div class="output_area"><div class="prompt"></div>
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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
+SUVORK5CYII=
+"
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<p>I then choose to plot Bonus and Expenses. Here we can see that almost all all POIs have mid to high expenses but the correlation between Bonuses and Expenses is not strong enough.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[71]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">df</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">df</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">c</span> <span class="o">=</span> <span class="n">df</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cmap</span><span class="o">=</span><span class="s">&#39;viridis&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span><span class="p">(</span><span class="s">&#39;Bonus&#39;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span><span class="p">(</span><span class="s">&#39;Expenses&#39;</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt output_prompt">Out[71]:</div>
+
+
+<div class="output_text output_subarea output_execute_result">
+<pre>&lt;matplotlib.text.Text at 0x114ad1b90&gt;</pre>
+</div>
+
+</div>
+
+<div class="output_area"><div class="prompt"></div>
+
+
+<div class="output_png output_subarea ">
+<img src="data:image/png;base64,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
+9MV/AfESlCc9Fm//AAAAAElFTkSuQmCC
+"
+>
+</div>
+
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Create-New-Features">Create New Features<a class="anchor-link" href="#Create-New-Features">&#182;</a></h1><p>I made two new features and they are both fractions:</p>
 <ul>
 <li><p>Fraction_from_poi_email: This is a fraction of all the messages a POI sent to this person over all the messages that the POI sent.</p>
@@ -620,7 +1331,7 @@ iUVERCKlxCIiIpFSYhERkUj9f78Q1MwjmfjjAAAAAElFTkSuQmCC
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[38]:</div>
+<div class="prompt input_prompt">In&nbsp;[72]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="c">### create new features</span>
@@ -665,19 +1376,68 @@ iUVERCKlxCIiIpFSYhERkUj9f78Q1MwjmfjjAAAAAElFTkSuQmCC
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Algorithm-#1">Algorithm #1<a class="anchor-link" href="#Algorithm-#1">&#182;</a></h1><p>I decide to use Naive Bayes.</p>
+<h1 id="Impact-of-New-Features">Impact of New Features<a class="anchor-link" href="#Impact-of-New-Features">&#182;</a></h1><p>Precision and Recall before using the new features:</p>
+<table>
+<thead><tr>
+<th>Algorithm</th>
+<th>Precision</th>
+<th>Recall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Naive Bayes</td>
+<td>0.18</td>
+<td>0.5</td>
+</tr>
+<tr>
+<td>Decision Tree</td>
+<td>0.67</td>
+<td>0.5</td>
+</tr>
+</tbody>
+</table>
+<p>Precision and Recall after using the new features:</p>
+<table>
+<thead><tr>
+<th>Algorithm</th>
+<th>Precision</th>
+<th>Recall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Naive Bayes</td>
+<td>0.18</td>
+<td>0.43</td>
+</tr>
+<tr>
+<td>Decision Tree</td>
+<td>0.17</td>
+<td>0.32</td>
+</tr>
+</tbody>
+</table>
+<p>I found out that Precision and Recall for Naive Bayes don't change much. However, they decrease when the new features are added in the Decision Tree. I continue to play around with a combination of features below to see what works best.</p>
 
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Algorithm-#1---Naive-Bayes">Algorithm #1 - Naive Bayes<a class="anchor-link" href="#Algorithm-#1---Naive-Bayes">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[39]:</div>
+<div class="prompt input_prompt">In&nbsp;[73]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_score</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">recall_score</span>
-<span class="c">##Let&#39;s make a separate dataset to use in this decision tree so that we can use my_dataset unchanged </span>
+<div class=" highlight hl-ipython2"><pre><span class="c">##Let&#39;s make a separate dataset to use in this decision tree so that we can use my_dataset unchanged </span>
 <span class="c">##later on. </span>
 <span class="n">features_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;poi&quot;</span><span class="p">,</span> <span class="s">&quot;salary&quot;</span><span class="p">,</span> <span class="s">&quot;bonus&quot;</span><span class="p">,</span> <span class="s">&quot;fraction_from_poi_email&quot;</span><span class="p">,</span> <span class="s">&quot;fraction_to_poi_email&quot;</span><span class="p">,</span>
                  <span class="s">&#39;deferral_payments&#39;</span><span class="p">,</span> <span class="s">&#39;total_payments&#39;</span><span class="p">,</span> <span class="s">&#39;loan_advances&#39;</span><span class="p">,</span> <span class="s">&#39;restricted_stock_deferred&#39;</span><span class="p">,</span>
@@ -691,21 +1451,28 @@ iUVERCKlxCIiIpFSYhERkUj9f78Q1MwjmfjjAAAAAElFTkSuQmCC
 
 <span class="n">labels</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">targetFeatureSplit</span><span class="p">(</span><span class="n">data_nb</span><span class="p">)</span>
 
-<span class="c">#Let&#39;s split the dataset into training and testing data</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">cross_validation</span>
-<span class="n">features_train</span><span class="p">,</span> <span class="n">features_test</span><span class="p">,</span> <span class="n">labels_train</span><span class="p">,</span> <span class="n">labels_test</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span>
-    <span class="n">features</span><span class="p">,</span><span class="n">labels</span><span class="p">,</span><span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="c">#Now let&#39;s deploy the naive bayes algorithm using k-fold cross validation</span>
+<span class="n">recall_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">precision_all</span> <span class="o">=</span> <span class="p">[]</span>
 
-<span class="c">#Now let&#39;s deploy the naive bayes algorithm and calculate the accuracy of it by using the testing set</span>
+<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_nb</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">train_indices</span><span class="p">,</span> <span class="n">test_indices</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+    <span class="n">features_train</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">features_test</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">labels_train</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">labels_test</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">GaussianNB</span><span class="p">()</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+    <span class="n">precision_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">recall_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+        
 
-<span class="kn">from</span> <span class="nn">sklearn.naive_bayes</span> <span class="kn">import</span> <span class="n">GaussianNB</span>
-<span class="n">clf</span> <span class="o">=</span> <span class="n">GaussianNB</span><span class="p">()</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
-<span class="n">score</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">features_test</span><span class="p">,</span><span class="n">labels_test</span><span class="p">)</span>
-<span class="n">pred</span><span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy:&#39;</span><span class="p">,</span> <span class="n">score</span>
-<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>  
-<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+
+
+        
+<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">precision_all</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">recall_all</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -718,9 +1485,8 @@ iUVERCKlxCIiIpFSYhERkUj9f78Q1MwjmfjjAAAAAElFTkSuQmCC
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Accuracy: 0.266666666667
-Precision: 0.181818181818
-Recall: 0.5
+<pre>Precision: 0.175925925926
+Recall: 0.438888888889
 </pre>
 </div>
 </div>
@@ -734,50 +1500,44 @@ Recall: 0.5
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Algorithm-#2">Algorithm #2<a class="anchor-link" href="#Algorithm-#2">&#182;</a></h1><p>I then decide to deploy a Decision Tree to compare the results with the Naive Bayes algorithm.</p>
-
+<h1 id="Algorithm-#2---Decision-Tree">Algorithm #2 - Decision Tree<a class="anchor-link" href="#Algorithm-#2---Decision-Tree">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[40]:</div>
+<div class="prompt input_prompt">In&nbsp;[74]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_score</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">recall_score</span>
-<span class="c">##Let&#39;s make a separate dataset to use in this decision tree so that we can use my_dataset unchanged </span>
-<span class="c">##later on. </span>
-<span class="n">features_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;poi&quot;</span><span class="p">,</span> <span class="s">&quot;salary&quot;</span><span class="p">,</span> <span class="s">&quot;bonus&quot;</span><span class="p">,</span> <span class="s">&quot;fraction_from_poi_email&quot;</span><span class="p">,</span> <span class="s">&quot;fraction_to_poi_email&quot;</span><span class="p">,</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">features_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;poi&quot;</span><span class="p">,</span> <span class="s">&quot;salary&quot;</span><span class="p">,</span> <span class="s">&quot;bonus&quot;</span><span class="p">,</span> <span class="s">&quot;fraction_from_poi_email&quot;</span><span class="p">,</span> <span class="s">&quot;fraction_to_poi_email&quot;</span><span class="p">,</span>
                  <span class="s">&#39;deferral_payments&#39;</span><span class="p">,</span> <span class="s">&#39;total_payments&#39;</span><span class="p">,</span> <span class="s">&#39;loan_advances&#39;</span><span class="p">,</span> <span class="s">&#39;restricted_stock_deferred&#39;</span><span class="p">,</span>
                  <span class="s">&#39;deferred_income&#39;</span><span class="p">,</span> <span class="s">&#39;total_stock_value&#39;</span><span class="p">,</span> <span class="s">&#39;expenses&#39;</span><span class="p">,</span> <span class="s">&#39;exercised_stock_options&#39;</span><span class="p">,</span>
                  <span class="s">&#39;long_term_incentive&#39;</span><span class="p">,</span> <span class="s">&#39;shared_receipt_with_poi&#39;</span><span class="p">,</span> <span class="s">&#39;restricted_stock&#39;</span><span class="p">,</span> <span class="s">&#39;director_fees&#39;</span><span class="p">]</span>
 
 <span class="n">data_dt</span> <span class="o">=</span> <span class="n">featureFormat</span><span class="p">(</span><span class="n">my_dataset</span><span class="p">,</span> <span class="n">features_list</span><span class="p">)</span>
 
-<span class="c">#Now its time to split the dataset into features and labels. The code below assumes that the </span>
-<span class="c">#first variable is the label.</span>
 
 <span class="n">labels</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">targetFeatureSplit</span><span class="p">(</span><span class="n">data_dt</span><span class="p">)</span>
 
-<span class="c">#Let&#39;s split the dataset into training and testing data</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">cross_validation</span>
-<span class="n">features_train</span><span class="p">,</span> <span class="n">features_test</span><span class="p">,</span> <span class="n">labels_train</span><span class="p">,</span> <span class="n">labels_test</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span>
-    <span class="n">features</span><span class="p">,</span><span class="n">labels</span><span class="p">,</span><span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">precision_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">recall_all</span> <span class="o">=</span> <span class="p">[]</span>
 
-<span class="c">#Now let&#39;s deploy the decision tree and calculate the accuracy of it by using the testing set</span>
+<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_dt</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">train_indices</span><span class="p">,</span> <span class="n">test_indices</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+    <span class="n">features_train</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">features_test</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">labels_train</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">labels_test</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">()</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+    <span class="n">precision_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">recall_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">importances</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">feature_importances_</span>
+    
 
-<span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="kn">import</span> <span class="n">DecisionTreeClassifier</span>
-<span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">()</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
-<span class="n">score</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">features_test</span><span class="p">,</span><span class="n">labels_test</span><span class="p">)</span>
-<span class="n">pred</span><span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy:&#39;</span><span class="p">,</span> <span class="n">score</span>
-<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>  
-<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
-
-<span class="n">importances</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">feature_importances_</span>
-
+<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">precision_all</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">recall_all</span><span class="p">)</span>
 
 
 <span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
@@ -798,14 +1558,13 @@ Recall: 0.5
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Accuracy: 0.6
-Precision: 0.25
-Recall: 0.25
+<pre>Precision: 0.281746031746
+Recall: 0.353703703704
 </pre>
 </div>
 </div>
 
-<div class="output_area"><div class="prompt output_prompt">Out[40]:</div>
+<div class="output_area"><div class="prompt output_prompt">Out[74]:</div>
 
 <div class="output_html rendered_html output_subarea output_execute_result">
 <div>
@@ -826,17 +1585,17 @@ Recall: 0.25
     <tr>
       <th>1</th>
       <td>bonus</td>
-      <td>0.000000</td>
+      <td>0.347924</td>
     </tr>
     <tr>
       <th>2</th>
       <td>fraction_from_poi_email</td>
-      <td>0.072180</td>
+      <td>0.000000</td>
     </tr>
     <tr>
       <th>3</th>
       <td>fraction_to_poi_email</td>
-      <td>0.149133</td>
+      <td>0.062130</td>
     </tr>
     <tr>
       <th>4</th>
@@ -846,7 +1605,7 @@ Recall: 0.25
     <tr>
       <th>5</th>
       <td>total_payments</td>
-      <td>0.000000</td>
+      <td>0.079086</td>
     </tr>
     <tr>
       <th>6</th>
@@ -861,22 +1620,22 @@ Recall: 0.25
     <tr>
       <th>8</th>
       <td>deferred_income</td>
-      <td>0.000000</td>
+      <td>0.284708</td>
     </tr>
     <tr>
       <th>9</th>
       <td>total_stock_value</td>
-      <td>0.148962</td>
+      <td>0.000000</td>
     </tr>
     <tr>
       <th>10</th>
       <td>expenses</td>
-      <td>0.212467</td>
+      <td>0.100110</td>
     </tr>
     <tr>
       <th>11</th>
       <td>exercised_stock_options</td>
-      <td>0.121017</td>
+      <td>0.000000</td>
     </tr>
     <tr>
       <th>12</th>
@@ -886,12 +1645,12 @@ Recall: 0.25
     <tr>
       <th>13</th>
       <td>shared_receipt_with_poi</td>
-      <td>0.258647</td>
+      <td>0.059314</td>
     </tr>
     <tr>
       <th>14</th>
       <td>restricted_stock</td>
-      <td>0.037594</td>
+      <td>0.066728</td>
     </tr>
     <tr>
       <th>15</th>
@@ -914,7 +1673,7 @@ Recall: 0.25
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Choosing-The-Algorithm">Choosing The Algorithm<a class="anchor-link" href="#Choosing-The-Algorithm">&#182;</a></h1><p>I decide to go with the Decision Tree instead of Naive Bayes because the Accuracy and Precision for Decision Tree is higher than Nive Bayes. Recall is a little lower than Naive Bayes but I can tune the algorithm to be able to achieve a higher Recall.</p>
+<h1 id="Choosing-The-Algorithm">Choosing The Algorithm<a class="anchor-link" href="#Choosing-The-Algorithm">&#182;</a></h1><p>I decide to go with the Decision Tree instead of Naive Bayes because the Precision for Decision Tree is higher than Naive Bayes. Recall is a little lower than Naive Bayes but I can tune the algorithm to be able to achieve a higher Recall.</p>
 
 </div>
 </div>
@@ -924,9 +1683,9 @@ Recall: 0.25
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Feature-Selection">Feature Selection<a class="anchor-link" href="#Feature-Selection">&#182;</a></h1><p>The three features that I end up using are ‘fraction_to_poi_email’, ‘expenses’, and ‘shared_receipt_with_poi’. I tried a combination of features to see which combination of features would give me the highest precision and recall possible in the decision tree I deploy.</p>
-<p>I did not have to do any scaling because I was using  a Decision Tree and Decision Trees don’t require scaling usually.</p>
-<p>Feature Importances for the Variables I used:</p>
+<h1 id="Feature-Selection">Feature Selection<a class="anchor-link" href="#Feature-Selection">&#182;</a></h1><p>The three features that I end up using are ‘fraction_to_poi_email’, 'fraction_from_poi_email', ‘expenses’, and ‘shared_receipt_with_poi’.</p>
+<p>I decide to use Feature Importances to decide which features to include in my algorithm. You can see my process below:</p>
+<h3 id="Step-1:-All-Features">Step 1: All Features<a class="anchor-link" href="#Step-1:-All-Features">&#182;</a></h3><p>When I run my algorithm with all features, I get the following feature Importances:</p>
 <table>
 <thead><tr>
 <th>Features</th>
@@ -935,59 +1694,225 @@ Recall: 0.25
 </thead>
 <tbody>
 <tr>
+<td>salary</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>bonus</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>fraction_from_poi_email</td>
+<td>0.072180</td>
+</tr>
+<tr>
 <td>fraction_to_poi_email</td>
-<td>0.232919</td>
+<td>0.149133</td>
+</tr>
+<tr>
+<td>deferral_payments</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>total_payments</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>loan_advances</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>restricted_stock_deferred</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>deferred_income</td>
+<td>0.000000</td>
+</tr>
+<tr>
+<td>total_stock_value</td>
+<td>0.000000</td>
 </tr>
 <tr>
 <td>expenses</td>
-<td>0.063768</td>
+<td>0.265934</td>
+</tr>
+<tr>
+<td>exercised_stock_options</td>
+<td>0.216512</td>
+</tr>
+<tr>
+<td>long_term_incentive</td>
+<td>0.000000</td>
 </tr>
 <tr>
 <td>shared_receipt_with_poi</td>
-<td>0.255057</td>
+<td>0.328822</td>
+</tr>
+<tr>
+<td>restricted_stock</td>
+<td>0.037594</td>
+</tr>
+<tr>
+<td>director_fees</td>
+<td>0.000000</td>
 </tr>
 </tbody>
 </table>
+<table>
+<thead><tr>
+<th>Precision</th>
+<th>Recall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.17</td>
+<td>0.29</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Step-2:-Remove-all-features-with-Importances-=-0">Step 2: Remove all features with Importances = 0<a class="anchor-link" href="#Step-2:-Remove-all-features-with-Importances-=-0">&#182;</a></h3><p>I re-run the algorithm and get the following feature importances:</p>
+<table>
+<thead><tr>
+<th>Features</th>
+<th>Importances</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fraction_from_poi_email</td>
+<td>0.137999</td>
+</tr>
+<tr>
+<td>fraction_to_poi_email</td>
+<td>0.273315</td>
+</tr>
+<tr>
+<td>expenses</td>
+<td>0.268109</td>
+</tr>
+<tr>
+<td>exercised_stock_options</td>
+<td>0.095679</td>
+</tr>
+<tr>
+<td>shared_receipt_with_poi</td>
+<td>0.134687</td>
+</tr>
+<tr>
+<td>restricted_stock</td>
+<td>0.090212</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead><tr>
+<th>Precision</th>
+<th>Recall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.34</td>
+<td>0.36</td>
+</tr>
+</tbody>
+</table>
+<h3 id="Step-3:-Remove-any-Features-with-feature-Importances&lt;-0.1">Step 3: Remove any Features with feature Importances&lt; 0.1<a class="anchor-link" href="#Step-3:-Remove-any-Features-with-feature-Importances&lt;-0.1">&#182;</a></h3><p>I re-run the algorithm and get the following feature importances:</p>
+<table>
+<thead><tr>
+<th>Features</th>
+<th>Importances</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>fraction_from_poi_email</td>
+<td>0.140088</td>
+</tr>
+<tr>
+<td>fraction_to_poi_email</td>
+<td>0.275600</td>
+</tr>
+<tr>
+<td>expenses</td>
+<td>0.512543</td>
+</tr>
+<tr>
+<td>shared_receipt_with_poi</td>
+<td>0.071769</td>
+</tr>
+</tbody>
+</table>
+<table>
+<thead><tr>
+<th>Precision</th>
+<th>Recall</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0.29</td>
+<td>0.35</td>
+</tr>
+</tbody>
+</table>
+<p>I decide to use all four features.</p>
+<p>I did not have to do any scaling because I was using a Decision Tree and Decision Trees don’t require scaling usually.</p>
 
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Algorithm-2---Decision-Tree-(With-Modified-Features)">Algorithm 2 - Decision Tree (With Modified Features)<a class="anchor-link" href="#Algorithm-2---Decision-Tree-(With-Modified-Features)">&#182;</a></h1>
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[41]:</div>
+<div class="prompt input_prompt">In&nbsp;[75]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="c">##According to these results I pick the following features. </span>
-<span class="n">features_list_rev</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;poi&#39;</span><span class="p">,</span> <span class="s">&#39;fraction_to_poi_email&#39;</span><span class="p">,</span>
-                     <span class="s">&#39;expenses&#39;</span><span class="p">,</span> <span class="s">&#39;shared_receipt_with_poi&#39;</span><span class="p">]</span>
-<span class="c">##Now I deply the decision tree again for the new features. </span>
-<span class="n">data_dt_rev</span> <span class="o">=</span> <span class="n">featureFormat</span><span class="p">(</span><span class="n">data_dict</span><span class="p">,</span> <span class="n">features_list_rev</span><span class="p">)</span>
+<span class="n">features_list</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;poi&#39;</span><span class="p">,</span> <span class="s">&#39;fraction_to_poi_email&#39;</span><span class="p">,</span>
+                     <span class="s">&#39;expenses&#39;</span><span class="p">,</span> <span class="s">&#39;shared_receipt_with_poi&#39;</span><span class="p">,</span> 
+                     <span class="s">&#39;fraction_from_poi_email&#39;</span><span class="p">]</span>
+<span class="n">data_dt</span> <span class="o">=</span> <span class="n">featureFormat</span><span class="p">(</span><span class="n">my_dataset</span><span class="p">,</span> <span class="n">features_list</span><span class="p">)</span>
 
-<span class="c">#Now its time to split the dataset into features and labels. The code below assumes that the first variable is the </span>
-<span class="c">#label.</span>
+<span class="n">labels</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">targetFeatureSplit</span><span class="p">(</span><span class="n">data_dt</span><span class="p">)</span>
 
-<span class="n">labels</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">targetFeatureSplit</span><span class="p">(</span><span class="n">data_dt_rev</span><span class="p">)</span>
+<span class="n">precision_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">recall_all</span> <span class="o">=</span> <span class="p">[]</span>
 
-<span class="c">#Let&#39;s split the dataset into training and testing data</span>
-<span class="kn">from</span> <span class="nn">sklearn</span> <span class="kn">import</span> <span class="n">cross_validation</span>
-<span class="n">features_train</span><span class="p">,</span> <span class="n">features_test</span><span class="p">,</span> <span class="n">labels_train</span><span class="p">,</span> <span class="n">labels_test</span> <span class="o">=</span> <span class="n">cross_validation</span><span class="o">.</span><span class="n">train_test_split</span><span class="p">(</span>
-    <span class="n">features</span><span class="p">,</span> <span class="n">labels</span><span class="p">,</span> <span class="n">test_size</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">random_state</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_dt</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">train_indices</span><span class="p">,</span> <span class="n">test_indices</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+    <span class="n">features_train</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">features_test</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">labels_train</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">labels_test</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">()</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+    <span class="n">precision_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">recall_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">importances</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">feature_importances_</span>
+    
+
+<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">precision_all</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">recall_all</span><span class="p">)</span>
 
 
-<span class="c">#Now let&#39;s deploy the decision tree and calculate the accuracy, precision and recall before </span>
-<span class="c">#tuning the algorithm</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
 
-
-<span class="kn">from</span> <span class="nn">sklearn.tree</span> <span class="kn">import</span> <span class="n">DecisionTreeClassifier</span>
-<span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">()</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
-<span class="n">score</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">features_test</span><span class="p">,</span><span class="n">labels_test</span><span class="p">)</span>
-<span class="n">pred</span><span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy, Precision and Recall before tuning the algorithm:&#39;</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy:&#39;</span><span class="p">,</span> <span class="n">score</span>
-<span class="kn">from</span> <span class="nn">sklearn.metrics</span> <span class="kn">import</span> <span class="n">precision_score</span><span class="p">,</span> <span class="n">recall_score</span>
-<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>  
-<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+<span class="n">data_imp</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+    <span class="p">{</span><span class="s">&#39;Features&#39;</span><span class="p">:</span> <span class="n">features_list</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> 
+     <span class="s">&#39;Importances&#39;</span><span class="p">:</span> <span class="n">importances</span><span class="p">})</span>
+<span class="n">data_imp</span>
 </pre></div>
 
 </div>
@@ -1000,12 +1925,50 @@ Recall: 0.25
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Accuracy, Precision and Recall before tuning the algorithm:
-Accuracy: 0.75
-Precision: 0.5
-Recall: 0.666666666667
+<pre>Precision: 0.292857142857
+Recall: 0.353703703704
 </pre>
 </div>
+</div>
+
+<div class="output_area"><div class="prompt output_prompt">Out[75]:</div>
+
+<div class="output_html rendered_html output_subarea output_execute_result">
+<div>
+<table border="1" class="dataframe">
+  <thead>
+    <tr style="text-align: right;">
+      <th></th>
+      <th>Features</th>
+      <th>Importances</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th>0</th>
+      <td>fraction_to_poi_email</td>
+      <td>0.275600</td>
+    </tr>
+    <tr>
+      <th>1</th>
+      <td>expenses</td>
+      <td>0.512543</td>
+    </tr>
+    <tr>
+      <th>2</th>
+      <td>shared_receipt_with_poi</td>
+      <td>0.071769</td>
+    </tr>
+    <tr>
+      <th>3</th>
+      <td>fraction_from_poi_email</td>
+      <td>0.140088</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+</div>
+
 </div>
 
 </div>
@@ -1018,8 +1981,8 @@ Recall: 0.666666666667
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
 <h1 id="Tuning-An-Algorithm">Tuning An Algorithm<a class="anchor-link" href="#Tuning-An-Algorithm">&#182;</a></h1><p>Algorithms have parameters and tuning an algorithm means specifying those parameters instead of using the default values. When you tune an algorithm appropriately, you can customize it to your dataset and increase accuracy, recall and precision. If you don’t tune an algorithm then your model will not be optimized for your dataset.</p>
-<p>We have already deployed the algorithm without tuning it. Now let's deploy the decision tree and calculate the accuracy, precision and recall after tuning it. A min_samples_split = 6 or higher gives the best precision and recall.</p>
-<p>As we can see, the accuracy jumps to 91% and we can see an increase in precision and recall as well after we tune the algorithm.</p>
+<p>We have already deployed the algorithm without tuning it. Now let's deploy the decision tree and calculate precision and recall after tuning it. A min_samples_split = 6 or higher gives the best precision and recall.</p>
+<p>As we can see, we can see an increase in precision and recall after we tune the algorithm.</p>
 <p>I have used the parameter min_samples_split, which is the minimum number of samples required to split an internal node.</p>
 
 </div>
@@ -1027,35 +1990,65 @@ Recall: 0.666666666667
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[42]:</div>
+<div class="prompt input_prompt">In&nbsp;[76]:</div>
 <div class="inner_cell">
     <div class="input_area">
-<div class=" highlight hl-ipython2"><pre><span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">min_samples_split</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
-<span class="n">score</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">features_test</span><span class="p">,</span><span class="n">labels_test</span><span class="p">)</span>
-<span class="n">pred</span><span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy, Precision and Recall after tuning the algorithm with min_samples_split = 2:&#39;</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy:&#39;</span><span class="p">,</span> <span class="n">score</span>
-<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>  
-<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+<div class=" highlight hl-ipython2"><pre><span class="n">precision_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">recall_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">labels</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">targetFeatureSplit</span><span class="p">(</span><span class="n">data_dt</span><span class="p">)</span>
+<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_dt</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">train_indices</span><span class="p">,</span> <span class="n">test_indices</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+    <span class="n">features_train</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">features_test</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">labels_train</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">labels_test</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">min_samples_split</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+    <span class="n">precision_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">recall_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">importances</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">feature_importances_</span>
 
-<span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">min_samples_split</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
-<span class="n">score</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">features_test</span><span class="p">,</span><span class="n">labels_test</span><span class="p">)</span>
-<span class="n">pred</span><span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy, Precision and Recall after tuning the algorithm with min_samples_split = 6:&#39;</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy:&#39;</span><span class="p">,</span> <span class="n">score</span>
-<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>  
-<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Precision and Recall after tuning the algorithm with min_samples_split = 2:&#39;</span>
+<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">precision_all</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">recall_all</span><span class="p">)</span>
 
-<span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">min_samples_split</span> <span class="o">=</span> <span class="mi">11</span><span class="p">)</span>
-<span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
-<span class="n">score</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">score</span><span class="p">(</span><span class="n">features_test</span><span class="p">,</span><span class="n">labels_test</span><span class="p">)</span>
-<span class="n">pred</span><span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy, Precision and Recall after tuning the algorithm with min_samples_split = 11:&#39;</span>
-<span class="k">print</span> <span class="s">&#39;Accuracy:&#39;</span><span class="p">,</span> <span class="n">score</span>
-<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>  
-<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span> <span class="n">pred</span><span class="p">)</span>
+<span class="n">precision_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">recall_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_dt</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">train_indices</span><span class="p">,</span> <span class="n">test_indices</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+    <span class="n">features_train</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">features_test</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">labels_train</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">labels_test</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">min_samples_split</span> <span class="o">=</span> <span class="mi">6</span><span class="p">)</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+    <span class="n">precision_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">recall_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">importances</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">feature_importances_</span>
+
+<span class="k">print</span> <span class="s">&#39;Precision and Recall after tuning the algorithm with min_samples_split = 6:&#39;</span>
+<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">precision_all</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">recall_all</span><span class="p">)</span>
+
+<span class="n">precision_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">recall_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_dt</span><span class="p">))</span>
+<span class="k">for</span> <span class="n">train_indices</span><span class="p">,</span> <span class="n">test_indices</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+    <span class="n">features_train</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">features_test</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">labels_train</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+    <span class="n">labels_test</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+    <span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">(</span><span class="n">min_samples_split</span> <span class="o">=</span> <span class="mi">11</span><span class="p">)</span>
+    <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
+    <span class="n">pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+    <span class="n">precision_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">recall_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+    <span class="n">importances</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">feature_importances_</span>
+<span class="k">print</span> <span class="s">&#39;Precision and Recall after tuning the algorithm with min_samples_split = 11:&#39;</span>
+<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">precision_all</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">recall_all</span><span class="p">)</span>
 </pre></div>
 
 </div>
@@ -1068,18 +2061,15 @@ Recall: 0.666666666667
 
 <div class="output_area"><div class="prompt"></div>
 <div class="output_subarea output_stream output_stdout output_text">
-<pre>Accuracy, Precision and Recall after tuning the algorithm with min_samples_split = 2:
-Accuracy: 0.75
-Precision: 0.5
-Recall: 0.666666666667
-Accuracy, Precision and Recall after tuning the algorithm with min_samples_split = 6:
-Accuracy: 0.916666666667
-Precision: 1.0
-Recall: 0.666666666667
-Accuracy, Precision and Recall after tuning the algorithm with min_samples_split = 11:
-Accuracy: 0.916666666667
-Precision: 1.0
-Recall: 0.666666666667
+<pre>Precision and Recall after tuning the algorithm with min_samples_split = 2:
+Precision: 0.265079365079
+Recall: 0.353703703704
+Precision and Recall after tuning the algorithm with min_samples_split = 6:
+Precision: 0.392857142857
+Recall: 0.353703703704
+Precision and Recall after tuning the algorithm with min_samples_split = 11:
+Precision: 0.45
+Recall: 0.427777777778
 </pre>
 </div>
 </div>
@@ -1093,13 +2083,88 @@ Recall: 0.666666666667
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Validation-Of-The-Model">Validation Of The Model<a class="anchor-link" href="#Validation-Of-The-Model">&#182;</a></h1><p>Validation is a technique to evaluate predictive models by partitioning the original sample into a training set to train the model, and a test set to evaluate it.</p>
-<h1 id="Evaluation-Metrics">Evaluation Metrics<a class="anchor-link" href="#Evaluation-Metrics">&#182;</a></h1><p>In this project, I have used Accuracy, Precision and Recall to validate my models.</p>
-<p>When you build a model for a classification problem you almost always want to look at the accuracy of that model as the number of correct predictions from all predictions made. This is the classification accuracy.</p>
-<p>In this project, our main goal is to identify POIs so False Negatives i.e. not recognizing someone as a POI when someone is actually a POI is more harmful than False Positives i.e. recognizing someone as a POI when someone is actually not a POI.</p>
-<p>Hence, while accuracy is important it can also be misleading because even with a high accuracy, the number of False Negatives that the model can predict can be high. We need a high Recall along with Accuracy.</p>
-<p>Recall is the number of True Positives divided by the number of True Positives and the number of False Negatives. A low Recall value indicates many False Negatives.</p>
-<p>In our model, we have a Recall of 0.67 which tells us that 67% of the time the model is correct in flagging the POIs whereas 33% of the time it identifies employers as POIs when they are not POIs.</p>
+<p>After tuning the algorithm manually, I decide to use GridSearchCV to tune it because:</p>
+<p>1) It can do a more robust search over your different parameters to find the best parameters.</p>
+<p>2) Use the "scoring" parameter to lead the parameter search process to maximize any parameter of my choice. Here I want to maximize recall because in this project, our main goal is to identify POIs so False Negatives i.e. not recognizing someone as a POI when someone is actually a POI is more harmful than False Positives i.e. recognizing someone as a POI when someone is actually not a POI.</p>
+<p>3) Using the "cv" parameter you can pass a cross validation object to validate your search results that best adapt to your dataset characteristics. Here I have used Stratified Shuffle Split. This is a cross-validation object provides stratified randomized folds. They make the folds by preserving the percentage of samples for each class i.e. training and testing datasets.</p>
+
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[77]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="n">precision_all</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="n">recall_all</span> <span class="o">=</span> <span class="p">[]</span>
+
+<span class="n">kf</span> <span class="o">=</span> <span class="n">KFold</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">data_dt</span><span class="p">))</span>
+<span class="n">labels</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">targetFeatureSplit</span><span class="p">(</span><span class="n">data_dt</span><span class="p">)</span>
+
+
+<span class="k">for</span> <span class="n">train_indices</span><span class="p">,</span> <span class="n">test_indices</span> <span class="ow">in</span> <span class="n">kf</span><span class="p">:</span>
+        <span class="n">features_train</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+        <span class="n">features_test</span><span class="o">=</span> <span class="p">[</span><span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+        <span class="n">labels_train</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_indices</span><span class="p">]</span>
+        <span class="n">labels_test</span><span class="o">=</span><span class="p">[</span><span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">test_indices</span><span class="p">]</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;splitter&#39;</span><span class="p">:[</span><span class="s">&#39;best&#39;</span><span class="p">,</span> <span class="s">&#39;random&#39;</span><span class="p">],</span>
+              <span class="s">&#39;criterion&#39;</span><span class="p">:[</span><span class="s">&#39;gini&#39;</span><span class="p">,</span> <span class="s">&#39;entropy&#39;</span><span class="p">],</span>
+               <span class="s">&#39;min_samples_split&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">11</span><span class="p">]}</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">DecisionTreeClassifier</span><span class="p">()</span>
+        <span class="n">sss</span> <span class="o">=</span> <span class="n">StratifiedShuffleSplit</span><span class="p">(</span><span class="n">labels_train</span><span class="p">)</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">grid_search</span><span class="o">.</span><span class="n">GridSearchCV</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">cv</span><span class="o">=</span><span class="n">sss</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&quot;recall&quot;</span><span class="p">)</span>
+        <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span><span class="n">labels_train</span><span class="p">)</span>
+        <span class="n">pred</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+        <span class="n">precision_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">precision_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+        <span class="n">recall_all</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">recall_score</span><span class="p">(</span><span class="n">labels_test</span><span class="p">,</span><span class="n">pred</span><span class="p">))</span>
+        
+
+<span class="k">print</span> <span class="s">&#39;Precision and Recall after tuning the algorithm:&#39;</span>
+        
+<span class="k">print</span> <span class="s">&#39;Precision:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">precision_all</span><span class="p">)</span>
+<span class="k">print</span> <span class="s">&#39;Recall:&#39;</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">average</span><span class="p">(</span><span class="n">recall_all</span><span class="p">)</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>Precision and Recall after tuning the algorithm:
+Precision: 0.0833333333333
+Recall: 0.0666666666667
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Validation-Of-The-Model">Validation Of The Model<a class="anchor-link" href="#Validation-Of-The-Model">&#182;</a></h1><p>We need to validate the model by splitting it into training and testing sets to avoid overfitting. Overfitting is when we use the same dataset to train the model and then to test it. This would give us the perfect score but it would fail to give us anything useful on dataset that is yet to be seen. Validation also gives an estimate of performance on an independent dataset.</p>
+<p>The two datasets:</p>
+<p>1) Training dataset: You train your model on this dataset by pairing the input with expected output.</p>
+<p>2) Testing dataset: You test how well you have trained your model on this dataset. You can do this by using different evaluation metrics like Accuracy, Precision and Recall.</p>
+<p>In my project I have decided to use K-fold cross validation because this method randomly partitions the dataset into k equal size subsamples. Out of the k subsamples, one subsample is used as the testing dataset and the rest k-1 subsamples are used as training datasets. This process is repeated k times and the results are averaged to produce a single estimation.</p>
+<p>The advantage of k-folds cross-validation over other methods is that all observations are used for both training and testing and each observation is used for testing only once. This method is especially advantageous for our dataset because it is quite small. We have only 146 observations. It is also very skewed. Out of the 146 data points only 18 observations are POIs. K-fold cross validation uses each employee only once in the testing dataset.</p>
+<h1 id="Evaluation-Metrics">Evaluation Metrics<a class="anchor-link" href="#Evaluation-Metrics">&#182;</a></h1><p>In this project, I have used Precision and Recall to evaluate my models.</p>
+<p>Our main goal is to identify POIs so False Negatives i.e. not recognizing someone as a POI when someone is actually a POI is more harmful than False Positives i.e. recognizing someone as a POI when someone is actually not a POI.</p>
+<p>Hence, we need a high Recall.</p>
+<p>Recall is the number of True Positives divided by the sum of True Positives and the number of False Negatives. A low Recall value indicates many False Negatives.</p>
+<p>Recall in this project = Total number recognized as POIs that are actually POIs / (Total number recognized as POIs that are actually POIs + Total number of POIs not recognized as POIs but are POIs)</p>
+<p>Precision is the number of True Positives divided by the sum of True Positives and False Positives. A low Precision value indicates many False Positives.</p>
+<p>Precision in this project = Total number recognized as POIs that are actually POIS / (Total number recognized as POIs that are actually POIs + Total number of POIs recognized as POIs but are not POIs)</p>
 <p>We can see an improvement in Recall after tuning the algorithm.</p>
 
 </div>
@@ -1116,7 +2181,7 @@ Recall: 0.666666666667
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[43]:</div>
+<div class="prompt input_prompt">In&nbsp;[78]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython2"><pre><span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="nb">open</span><span class="p">(</span><span class="s">&quot;my_classifier.pkl&quot;</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="p">)</span>
@@ -1134,8 +2199,8 @@ Recall: 0.666666666667
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="Conclusion">Conclusion<a class="anchor-link" href="#Conclusion">&#182;</a></h1><p>In this project, since we are trying to identify the Person of Interest(POI), we can say that according to the decision tree algorithm, we can say that 100% of the time that our algorithm identified a POI it really was a POI because our precision is 0.1 and 0% of the time if it flagged a person as POI, then it was a false alarm.</p>
-<p>Recall tells us that our algorithm is 67% of the time correct in flagging the POI while the other 33% of the time it was showing us a false negative which means that it would not recognize a person as a POI while he/she actually was.</p>
+<h1 id="Conclusion">Conclusion<a class="anchor-link" href="#Conclusion">&#182;</a></h1><p>In this project, since we are trying to identify the Person of Interest (POI), we can say that according to the decision tree algorithm, 50% of the time that our algorithm identified a POI it really was a POI because our precision is 0.5 and 50% of the time if it flagged a person as POI, then it was a false alarm.</p>
+<p>Recall tells us that our algorithm is 42% of the time correct in flagging the POI while the other 58% of the time it was showing us a false negative which means that it would not recognize a person as a POI while he/she actually was.</p>
 <p>While our numbers seem to be reasonable, there is obviously room for improvement. We can keep looking into the text of the data and see if we can garner any more information from there.</p>
 
 </div>
@@ -1150,10 +2215,162 @@ Recall: 0.666666666667
 <a href="http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html">http://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html</a>
 <a href="https://www.google.com/webhp?sourceid=chrome-instant&amp;ion=1&amp;espv=2&amp;ie=UTF-8#q=sklearn+naive+bayes">https://www.google.com/webhp?sourceid=chrome-instant&amp;ion=1&amp;espv=2&amp;ie=UTF-8#q=sklearn+naive+bayes</a>
 <a href="http://stackoverflow.com/questions/11277432/how-to-remove-a-key-from-a-python-dictionary">http://stackoverflow.com/questions/11277432/how-to-remove-a-key-from-a-python-dictionary</a>
-<a href="http://machinelearningmastery.com/classification-accuracy-is-not-enough-more-performance-measures-you-can-use/">http://machinelearningmastery.com/classification-accuracy-is-not-enough-more-performance-measures-you-can-use/</a></p>
+<a href="http://machinelearningmastery.com/classification-accuracy-is-not-enough-more-performance-measures-you-can-use/">http://machinelearningmastery.com/classification-accuracy-is-not-enough-more-performance-measures-you-can-use/</a>
+<a href="http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedShuffleSplit.html">http://scikit-learn.org/stable/modules/generated/sklearn.model_selection.StratifiedShuffleSplit.html</a></p>
 
 </div>
 </div>
+</div>
+<div class="cell border-box-sizing text_cell rendered">
+<div class="prompt input_prompt">
+</div>
+<div class="inner_cell">
+<div class="text_cell_render border-box-sizing rendered_html">
+<h1 id="Validating-Model-with-tester.py">Validating Model with tester.py<a class="anchor-link" href="#Validating-Model-with-tester.py">&#182;</a></h1>
+</div>
+</div>
+</div>
+<div class="cell border-box-sizing code_cell rendered">
+<div class="input">
+<div class="prompt input_prompt">In&nbsp;[79]:</div>
+<div class="inner_cell">
+    <div class="input_area">
+<div class=" highlight hl-ipython2"><pre><span class="c">#!/usr/bin/pickle</span>
+
+<span class="sd">&quot;&quot;&quot; a basic script for importing student&#39;s POI identifier,</span>
+<span class="sd">    and checking the results that they get from it </span>
+<span class="sd"> </span>
+<span class="sd">    requires that the algorithm, dataset, and features list</span>
+<span class="sd">    be written to my_classifier.pkl, my_dataset.pkl, and</span>
+<span class="sd">    my_feature_list.pkl, respectively</span>
+
+<span class="sd">    that process should happen at the end of poi_id.py</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">pickle</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">from</span> <span class="nn">sklearn.cross_validation</span> <span class="kn">import</span> <span class="n">StratifiedShuffleSplit</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;../tools/&quot;</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">feature_format</span> <span class="kn">import</span> <span class="n">featureFormat</span><span class="p">,</span> <span class="n">targetFeatureSplit</span>
+
+<span class="n">PERF_FORMAT_STRING</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\</span>
+<span class="se">\t</span><span class="s">Accuracy: {:&gt;0.{display_precision}f}</span><span class="se">\t</span><span class="s">Precision: {:&gt;0.{display_precision}f}</span><span class="se">\t\</span>
+<span class="s">Recall: {:&gt;0.{display_precision}f}</span><span class="se">\t</span><span class="s">F1: {:&gt;0.{display_precision}f}</span><span class="se">\t</span><span class="s">F2: {:&gt;0.{display_precision}f}&quot;</span>
+<span class="n">RESULTS_FORMAT_STRING</span> <span class="o">=</span> <span class="s">&quot;</span><span class="se">\t</span><span class="s">Total predictions: {:4d}</span><span class="se">\t</span><span class="s">True positives: {:4d}</span><span class="se">\t</span><span class="s">False positives: {:4d}</span><span class="se">\</span>
+<span class="se">\t</span><span class="s">False negatives: {:4d}</span><span class="se">\t</span><span class="s">True negatives: {:4d}&quot;</span>
+
+<span class="k">def</span> <span class="nf">test_classifier</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">feature_list</span><span class="p">,</span> <span class="n">folds</span> <span class="o">=</span> <span class="mi">1000</span><span class="p">):</span>
+    <span class="n">data</span> <span class="o">=</span> <span class="n">featureFormat</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">feature_list</span><span class="p">,</span> <span class="n">sort_keys</span> <span class="o">=</span> <span class="bp">True</span><span class="p">)</span>
+    <span class="n">labels</span><span class="p">,</span> <span class="n">features</span> <span class="o">=</span> <span class="n">targetFeatureSplit</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+    <span class="n">cv</span> <span class="o">=</span> <span class="n">StratifiedShuffleSplit</span><span class="p">(</span><span class="n">labels</span><span class="p">,</span> <span class="n">folds</span><span class="p">,</span> <span class="n">random_state</span> <span class="o">=</span> <span class="mi">42</span><span class="p">)</span>
+    <span class="n">true_negatives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">false_negatives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">true_positives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">false_positives</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">train_idx</span><span class="p">,</span> <span class="n">test_idx</span> <span class="ow">in</span> <span class="n">cv</span><span class="p">:</span> 
+        <span class="n">features_train</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">features_test</span>  <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">labels_train</span>   <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">labels_test</span>    <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">ii</span> <span class="ow">in</span> <span class="n">train_idx</span><span class="p">:</span>
+            <span class="n">features_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">features</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="p">)</span>
+            <span class="n">labels_train</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">labels</span><span class="p">[</span><span class="n">ii</span><span class="p">]</span> <span class="p">)</span>
+        <span class="k">for</span> <span class="n">jj</span> <span class="ow">in</span> <span class="n">test_idx</span><span class="p">:</span>
+            <span class="n">features_test</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">features</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="p">)</span>
+            <span class="n">labels_test</span><span class="o">.</span><span class="n">append</span><span class="p">(</span> <span class="n">labels</span><span class="p">[</span><span class="n">jj</span><span class="p">]</span> <span class="p">)</span>
+        
+        <span class="c">### fit the classifier using training set, and test on test set</span>
+        <span class="n">clf</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">features_train</span><span class="p">,</span> <span class="n">labels_train</span><span class="p">)</span>
+        <span class="n">predictions</span> <span class="o">=</span> <span class="n">clf</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">features_test</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">prediction</span><span class="p">,</span> <span class="n">truth</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">predictions</span><span class="p">,</span> <span class="n">labels_test</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">prediction</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">truth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">true_negatives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">prediction</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">truth</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">false_negatives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">prediction</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">truth</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">false_positives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">elif</span> <span class="n">prediction</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">truth</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">true_positives</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">print</span> <span class="s">&quot;Warning: Found a predicted label not == 0 or 1.&quot;</span>
+                <span class="k">print</span> <span class="s">&quot;All predictions should take value 0 or 1.&quot;</span>
+                <span class="k">print</span> <span class="s">&quot;Evaluating performance for processed predictions:&quot;</span>
+                <span class="k">break</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">total_predictions</span> <span class="o">=</span> <span class="n">true_negatives</span> <span class="o">+</span> <span class="n">false_negatives</span> <span class="o">+</span> <span class="n">false_positives</span> <span class="o">+</span> <span class="n">true_positives</span>
+        <span class="n">accuracy</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">*</span><span class="p">(</span><span class="n">true_positives</span> <span class="o">+</span> <span class="n">true_negatives</span><span class="p">)</span><span class="o">/</span><span class="n">total_predictions</span>
+        <span class="n">precision</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">*</span><span class="n">true_positives</span><span class="o">/</span><span class="p">(</span><span class="n">true_positives</span><span class="o">+</span><span class="n">false_positives</span><span class="p">)</span>
+        <span class="n">recall</span> <span class="o">=</span> <span class="mf">1.0</span><span class="o">*</span><span class="n">true_positives</span><span class="o">/</span><span class="p">(</span><span class="n">true_positives</span><span class="o">+</span><span class="n">false_negatives</span><span class="p">)</span>
+        <span class="n">f1</span> <span class="o">=</span> <span class="mf">2.0</span> <span class="o">*</span> <span class="n">true_positives</span><span class="o">/</span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">true_positives</span> <span class="o">+</span> <span class="n">false_positives</span><span class="o">+</span><span class="n">false_negatives</span><span class="p">)</span>
+        <span class="n">f2</span> <span class="o">=</span> <span class="p">(</span><span class="mi">1</span><span class="o">+</span><span class="mf">2.0</span><span class="o">*</span><span class="mf">2.0</span><span class="p">)</span> <span class="o">*</span> <span class="n">precision</span><span class="o">*</span><span class="n">recall</span><span class="o">/</span><span class="p">(</span><span class="mi">4</span><span class="o">*</span><span class="n">precision</span> <span class="o">+</span> <span class="n">recall</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">clf</span>
+        <span class="k">print</span> <span class="n">PERF_FORMAT_STRING</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">accuracy</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">recall</span><span class="p">,</span> <span class="n">f1</span><span class="p">,</span> <span class="n">f2</span><span class="p">,</span> <span class="n">display_precision</span> <span class="o">=</span> <span class="mi">5</span><span class="p">)</span>
+        <span class="k">print</span> <span class="n">RESULTS_FORMAT_STRING</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">total_predictions</span><span class="p">,</span> <span class="n">true_positives</span><span class="p">,</span> <span class="n">false_positives</span><span class="p">,</span> <span class="n">false_negatives</span><span class="p">,</span> <span class="n">true_negatives</span><span class="p">)</span>
+        <span class="k">print</span> <span class="s">&quot;&quot;</span>
+    <span class="k">except</span><span class="p">:</span>
+        <span class="k">print</span> <span class="s">&quot;Got a divide by zero when trying out:&quot;</span><span class="p">,</span> <span class="n">clf</span>
+        <span class="k">print</span> <span class="s">&quot;Precision or recall may be undefined due to a lack of true positive predicitons.&quot;</span>
+
+<span class="n">CLF_PICKLE_FILENAME</span> <span class="o">=</span> <span class="s">&quot;my_classifier.pkl&quot;</span>
+<span class="n">DATASET_PICKLE_FILENAME</span> <span class="o">=</span> <span class="s">&quot;my_dataset.pkl&quot;</span>
+<span class="n">FEATURE_LIST_FILENAME</span> <span class="o">=</span> <span class="s">&quot;my_feature_list.pkl&quot;</span>
+
+<span class="k">def</span> <span class="nf">dump_classifier_and_data</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">feature_list</span><span class="p">):</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">CLF_PICKLE_FILENAME</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">clf_outfile</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">clf_outfile</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">DATASET_PICKLE_FILENAME</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset_outfile</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">dataset</span><span class="p">,</span> <span class="n">dataset_outfile</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">FEATURE_LIST_FILENAME</span><span class="p">,</span> <span class="s">&quot;w&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">featurelist_outfile</span><span class="p">:</span>
+        <span class="n">pickle</span><span class="o">.</span><span class="n">dump</span><span class="p">(</span><span class="n">feature_list</span><span class="p">,</span> <span class="n">featurelist_outfile</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">load_classifier_and_data</span><span class="p">():</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">CLF_PICKLE_FILENAME</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">clf_infile</span><span class="p">:</span>
+        <span class="n">clf</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">clf_infile</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">DATASET_PICKLE_FILENAME</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">dataset_infile</span><span class="p">:</span>
+        <span class="n">dataset</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">dataset_infile</span><span class="p">)</span>
+    <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">FEATURE_LIST_FILENAME</span><span class="p">,</span> <span class="s">&quot;r&quot;</span><span class="p">)</span> <span class="k">as</span> <span class="n">featurelist_infile</span><span class="p">:</span>
+        <span class="n">feature_list</span> <span class="o">=</span> <span class="n">pickle</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">featurelist_infile</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">clf</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">feature_list</span>
+
+<span class="k">def</span> <span class="nf">main</span><span class="p">():</span>
+    <span class="c">### load up student&#39;s classifier, dataset, and feature_list</span>
+    <span class="n">clf</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">feature_list</span> <span class="o">=</span> <span class="n">load_classifier_and_data</span><span class="p">()</span>
+    <span class="c">### Run testing script</span>
+    <span class="n">test_classifier</span><span class="p">(</span><span class="n">clf</span><span class="p">,</span> <span class="n">dataset</span><span class="p">,</span> <span class="n">feature_list</span><span class="p">)</span>
+
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+    <span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+</div>
+</div>
+</div>
+
+<div class="output_wrapper">
+<div class="output">
+
+
+<div class="output_area"><div class="prompt"></div>
+<div class="output_subarea output_stream output_stdout output_text">
+<pre>GridSearchCV(cv=StratifiedShuffleSplit(labels=[ 0.  0. ...,  0.  1.], n_iter=10, test_size=0.1, random_state=None),
+       error_score=&apos;raise&apos;,
+       estimator=DecisionTreeClassifier(class_weight=None, criterion=&apos;gini&apos;, max_depth=None,
+            max_features=None, max_leaf_nodes=None, min_samples_leaf=1,
+            min_samples_split=2, min_weight_fraction_leaf=0.0,
+            presort=False, random_state=None, splitter=&apos;best&apos;),
+       fit_params={}, iid=True, n_jobs=1,
+       param_grid={&apos;min_samples_split&apos;: [11], &apos;splitter&apos;: [&apos;best&apos;, &apos;random&apos;], &apos;criterion&apos;: [&apos;gini&apos;, &apos;entropy&apos;]},
+       pre_dispatch=&apos;2*n_jobs&apos;, refit=True, scoring=&apos;recall&apos;, verbose=0)
+	Accuracy: 0.82408	Precision: 0.46426	Recall: 0.36050	F1: 0.40585	F2: 0.37737
+	Total predictions: 12000	True positives:  721	False positives:  832	False negatives: 1279	True negatives: 9168
+
+</pre>
+</div>
+</div>
+
+</div>
+</div>
+
 </div>
     </div>
   </div>
